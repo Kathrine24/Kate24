@@ -1,0 +1,351 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Практикум по лемматизации и морфологическому анализу\n",
+    "\n",
+    "## План на сегодня\n",
+    "* Как использовать этот код: чуть-чуть о Jupyter, Colab и питоновских IDE\n",
+    "* Запускаем MyStem с помощью питоновской обертки\n",
+    "* Если успеем — знакомимся с pymorphy2"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Как использовать этот код\n",
+    "Перед вами тетрадка Jupyter Notebook. Это одна из популярных сред для написания и __демонстрации__ кода на Python (и не только). Jupyter запускает питоновский код прямо в браузере. В Jupyter код можно запускать не целиком, а по ячейкам. Пример:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 73,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Мы с Даней сегодня позапускаем морфоанализаторы\n"
+     ]
+    }
+   ],
+   "source": [
+    "# ячейка с кодом\n",
+    "text = 'Мы с Даней сегодня позапускаем морфоанализаторы'\n",
+    "print (text)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 74,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "МЫ С ДАНЕЙ СЕГОДНЯ ПОЗАПУСКАЕМ МОРФОАНАЛИЗАТОРЫ\n"
+     ]
+    }
+   ],
+   "source": [
+    "# еще одна ячейка с кодом. \n",
+    "# Пространство имен общее — переменная text была заполнена в предыдущей ячейке\n",
+    "print (text.upper())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Кроме того, ячейки бывают текстовыми — их можно форматировать с помощью формата разметки markdown (.md). Текст, который вы сейчас читаете, написан как раз в таком формате. Файлы Jupyter Notebook имеют расширение .ipynb и автоматически рендерятся гитхабом. Например, эта же __[тетрадка](https://github.com/DanilSko/lyc_compling/blob/master/2019/Lemmatization%26Morphoanalysis.ipynb)__  у меня на гитхабе.  "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Окей, а как я могу запустить код в таком .ipynb?\n",
+    "\n",
+    "Есть разные варианты: \n",
+    "\n",
+    "### Через __[Google Colab](https://colab.research.google.com)__. \n",
+    "\n",
+    "Google Colab — это гугловский инструмент для написания кода в браузере и запуска прямо на серверах Google (с возможностью бесплатно использовать их вычислительные мощности, в т.ч. графические процессор  — GPU).  Google Colab — родственник Jupyter, они очень похожи. Разница в том, что Jupyter работает локально и использует ваш собственный питон, а Google Colab — это облачный сервис, похожий на Google Docs: вы можете делиться тетрадками и т.д. В Colab можно открыть эту тетрадку, указав ссылку на нее: \n",
+    "\n",
+    "![Colab](pics/github2colab.png) \n",
+    "\n",
+    "Просто загрузить .ipynb-файл в Colab тоже можно. \n",
+    "\n",
+    "### Скачать себе .ipynb и открыть в Jupyter\n",
+    "\n",
+    "Скачать .ipynb с гитхаба: \n",
+    "\n",
+    "![Raw](pics/raw_download.png) \n",
+    "\n",
+    "Поставить Jupyter Notebook по инструкции __[отсюда](https://jupyter.readthedocs.io/en/latest/install.html)__. Открыть терминал (в Windows — командную строку).пойти в папку, внутри которой лежит скачанный .ipynb, написать там jupyter notebook. Должно появиться что-то такое:\n",
+    "\n",
+    "![Colab](pics/github2colab.png)\n",
+    "\n",
+    "Из Jupyter можно выгрузить код в виде файла .py\n",
+    "\n",
+    "### Скачать .ipynb и открыть в PyCharm\n",
+    "В принципе, PyCha Проделать все то же, что в предыд.пункте,\n",
+    "\n",
+    "### (хак) Скачать файл .py из Google Colab или Jupyter и открыть в PyCharm или любой IDE\n",
+    "Вот копия этой тетрадки в Colab. Из Colab вы можете выгрузить не весь .ipynb, а только код в .py. Этот код уже можно запускать где угодно. "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### MyStem\n",
+    "\n",
+    "__[Mystem](https://tech.yandex.ru/mystem/)__ - это свободно распространяемый морфологический анализатор для русского языка с закрытым исходным кодом. То есть мы можем его бесплатно скачать с сайта и пользоваться им, но не можем посмотреть, что у него внутри и как оно работает.\n",
+    "\n",
+    "Mystem был придуман одним из создателей Яндекса Ильёй Сегаловичем. Некоторый потомок Mystem'а до сих пор работает внутри большого поисковика Яндекса, анализируя слова при поиске.\n",
+    "\n",
+    "MyStem значит my stemmer. Стемминг -- это разбиение формы на основу и флексию. Программы-стеммеры умеют превращать фразу 'Маша поехала за грибами' в 'Маш поехал за гриб'.  \n",
+    "\n",
+    "Но на самом деле MyStem не стеммер, а полноценный морфологический анализатор. Он может гораздо больше: устанавливать словарную форму слова, определять часть речи и грамматические характеристики (падеж, число, время, род...). В последних версиях Mystem умеет и выбирать из нескольких возможных грамматических разборов один, наиболее верный.\n",
+    "\n",
+    "У Mystem нет графического оконного интерфейса, запустить его можно только из командной строки. Зато есть обертка для Python — pymystem3.\n",
+    "\n",
+    "__[Документация к MyStem](https://tech.yandex.ru/mystem/doc/index-docpage/)__"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "# эта клетка нужна вам, если у вас не установлен модуль pymystem3. \n",
+    "!pip install pymystem3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "## импортируем непосредственно класс \"анализатор MyStem\" из pymystem3\n",
+    "from pymystem3 import Mystem\n",
+    "\n",
+    "help (Mystem()) ## всегда полезно почитать хелпы!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "moi_analizator = Mystem() ## создаем анализатор\n",
+    "test = 'Даня тестирует машинную морфологию' ## создаем тестовую строку\n",
+    "lemmatized = moi_analizator.lemmatize(test) ## лемматизируем строку с помощью mystem \n",
+    "print (lemmatized) ## напечатаем лемматизированную строку"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "analyzed = moi_analizator.analyze(test) # произведем морфологический анализ с помощью mystem \n",
+    "print (analyzed)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Теперь ваша очередь! \n",
+    "1. Впишите любое свое предложение.  \n",
+    "2. Получите анализ.\n",
+    "3. Сделайте из него выдачу такого вида:\n",
+    "\n",
+    "СЛОВО: даня РАЗБОР: S,имя,муж,од=им,ед\n",
+    "\n",
+    "СЛОВО: тестировать РАЗБОР: V,несов=непрош,ед,изъяв,3-л,пе\n",
+    "\n",
+    "СЛОВО: машинный РАЗБОР: A=вин,ед,полн,жен\n",
+    "\n",
+    "СЛОВО: морфология РАЗБОР: S,жен,неод=вин,ед"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Подсказка: выдача MyStem состоит из списков (list) и словарей (dict). К элементами списка можно обращаться по их индексу: "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1"
+      ]
+     },
+     "execution_count": 35,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "somelist = [1,2,3]\n",
+    "somelist[0]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "К элементам словаря обращаются по ключу:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'15 лет'"
+      ]
+     },
+     "execution_count": 37,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "somedict = {'Вася': '15 лет', 'Петя': '16 лет'}\n",
+    "somedict ['Вася']"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Задание 2\n",
+    "\n",
+    "Теперь откройте питоном __[текстовый файл](https://github.com/DanilSko/lyc_compling/blob/master/2019/text.txt)__ и получите из него с помощью mystem все прилагательные в женском роде. Мы хотим выдачу такого вида:\n",
+    "\n",
+    "ПРИЛАГАТЕЛЬНОЕ: Красивая НАЧАЛЬНАЯ ФОРМА: Красивый \n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Задание 3\n",
+    "\n",
+    "Есть подозрение, что в этой выдаче прилагательных есть неправильные примеры. То есть те, где на смом деле не женский род. Как бы нам на них посмотреть? Давайте перепишем код так, чтобы для каждого слова был его контекст  -- слово слева и справа.\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Задание 4\n",
+    "\n",
+    "Кажется, по умолчанию MyStem работает в режиме частичного разрешения морфологической неоднозначности. Например,  проанализируем двусмысленную фразу 'Эти типы стали есть в нашем цехе':"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "moi_analizator.analyze('Эти типы стали есть в нашем цехе')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Как бы нам получть и разбор стали -> сталь тоже ?\n",
+    "Попробуйте найти ответ в хелпах:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "help (Mystem())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Задание 5. Познакомьтесь с морфоанализатором PyMorphy2 \n",
+    "Документация __[здесь](https://pymorphy2.readthedocs.io/en/latest/)__.\n",
+    "Подумайте, чем он отличается от MyStem. \n",
+    "Попробуйте проанализировать примеры выше с помощью PyMorphy2. \n",
+    "Что придется доделать в PyMorphy?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
